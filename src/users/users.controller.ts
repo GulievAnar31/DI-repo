@@ -22,7 +22,7 @@ export class UsersController extends BaseController implements IUserController {
 	) {
 		super(loggerService);
 		this.userRouter = [
-			{ method: 'post', path: '/login', func: this.loginUser },
+			{ method: 'post', path: '/login', func: this.loginUser, middlewares: [] },
 			{ method: 'post', path: '/register', func: this.registerUser },
 		];
 		this.bindRoutes(this.userRouter);
