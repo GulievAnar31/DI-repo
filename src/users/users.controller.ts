@@ -10,12 +10,16 @@ import { IUserController } from './user.contoller.interface';
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { User } from './user.entity';
+import { UserService } from './user.service';
 
 @injectable()
 export class UsersController extends BaseController implements IUserController {
 	userRouter: IControllerRoute[];
 
-	constructor(@inject(Types.LoggerService) private loggerService: ILogger) {
+	constructor(
+		@inject(Types.LoggerService) private loggerService: ILogger,
+		@inject(Types.UserService) private userService: UserService
+	) {
 		super(loggerService);
 		this.userRouter = [
 			{ method: 'post', path: '/login', func: this.loginUser },
@@ -28,9 +32,11 @@ export class UsersController extends BaseController implements IUserController {
 		res.send('Login')
 	}
 
-	async registerUser({ body }: Request<{}, {}, UserRegisterDto>, res: Response): Promise<void> {
-		const newUser = new User(body.email, body.name)
-		await newUser.setPassword(body.password);
-		res.send(newUser);
+	async registerUser({ body }: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
+		const result = this.userService.createUser(body);
+		if(!result){
+			return next(new HTTPError(422, 'Такой пользователь уже существует'))
+		}
+		this.ok(res, 'Created')
 	}
 }
