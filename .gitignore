@@ -1,4 +1,7 @@
 node_modules
+/prisma/db/dev.db
+/prisma/db/dev.db-journal
+.env
 /.clinic
 /.vscode
 /dist
