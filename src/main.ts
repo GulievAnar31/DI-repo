@@ -7,6 +7,8 @@ import { UsersController } from './users/users.controller';
 import { Types } from './types';
 import { UserService } from './users/user.service';
 import { IUserService } from './users/users.service.interface';
+import { IConfifService } from './config/config.service.interface';
+import { ConfigService } from './config/config.service';
 
 export interface IBootstrap {
 	appContainer: Container;
@@ -18,7 +20,8 @@ export const appBindings = new ContainerModule((bind: interfaces.Bind) => {
 	bind<ExeptionFilter>(Types.ExeptionFilter).to(ExeptionFilter);
 	bind<UsersController>(Types.UsersController).to(UsersController);
 	bind<PostContoller>(Types.PostController).to(PostContoller);
-	bind<IUserService>(Types.UserService).to(UserService)
+	bind<IUserService>(Types.UserService).to(UserService);
+	bind<IConfifService>(Types.ConfigService).to(ConfigService).inSingletonScope();
 	bind<App>(Types.Application).to(App);
 });
 

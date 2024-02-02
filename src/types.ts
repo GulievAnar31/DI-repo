@@ -5,4 +5,5 @@ export const Types = {
 	PostController: Symbol.for('PostController'),
 	UserService: Symbol.for('UserService'),
 	ExeptionFilter: Symbol.for('ExeptionFilter'),
+	ConfigService: Symbol.for('ConfigService'),
 };

@@ -8,6 +8,7 @@ import { PostContoller } from './posts/posts.contoller';
 import { injectable, inject } from 'inversify';
 import { Types } from './types';
 import { json } from 'body-parser';
+import { ConfigService } from './config/config.service';
 
 @injectable()
 class App {
@@ -20,6 +21,7 @@ class App {
 		@inject(Types.ExeptionFilter) private exeptionFilter: ExeptionFilter,
 		@inject(Types.UsersController) private userController: UsersController,
 		@inject(Types.PostController) private postController: PostContoller,
+		@inject(Types.ConfigService) private configService: ConfigService,
 	) {
 		this.app = express();
 		this.port = 8000;
@@ -36,6 +38,10 @@ class App {
 
 	useExeptionFilters(): void {
 		this.app.use(this.exeptionFilter.catch.bind(this.exeptionFilter));
+	}
+
+	getConfig(): void {
+		console.log(this.configService)
 	}
 
 	public async init(): Promise<void> {

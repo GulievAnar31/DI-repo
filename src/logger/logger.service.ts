@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import * as tslog from 'tslog';
 import { ILogger } from './logger.interface';
 
