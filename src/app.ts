@@ -35,7 +35,6 @@ class App {
 	}
 
 	useExeptionFilters(): void {
-		debugger;
 		this.app.use(this.exeptionFilter.catch.bind(this.exeptionFilter));
 	}
 

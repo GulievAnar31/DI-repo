@@ -11,6 +11,7 @@ import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
+import { ValidateMiddleware } from '../common/validate.middleware';
 
 @injectable()
 export class UsersController extends BaseController implements IUserController {
@@ -22,21 +23,36 @@ export class UsersController extends BaseController implements IUserController {
 	) {
 		super(loggerService);
 		this.userRouter = [
-			{ method: 'post', path: '/login', func: this.loginUser, middlewares: [] },
-			{ method: 'post', path: '/register', func: this.registerUser },
+			{ 
+				method: 'post',
+				path: '/login',
+				func: this.loginUser,
+			},
+			{ 
+				method: 'post',
+				path: '/register',
+				func: this.registerUser,
+				middlewares: [new ValidateMiddleware(UserRegisterDto)]
+			},
 		];
 		this.bindRoutes(this.userRouter);
 	}
 
 	loginUser(req: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): void {
-		res.send('Login')
+		
 	}
 
 	async registerUser({ body }: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
-		const result = this.userService.createUser(body);
-		if(!result){
-			return next(new HTTPError(422, 'Такой пользователь уже существует'))
+		try {
+			const result = await this.userService.createUser(body);
+			if (!result) {
+				return next(new HTTPError(422, 'Такой пользователь уже существует'));
+			}
+	
+			this.ok(res, 'Created');
+		} catch (error) {
+			// Обработка ошибок при вызове this.userService.createUser
+			next(error);
 		}
-		this.ok(res, 'Created')
 	}
 }
