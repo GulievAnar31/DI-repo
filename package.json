@@ -12,6 +12,8 @@
     "start:dev": "nodemon",
     "generate": "prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "db:watch": "npx prisma studio",
+    "db:generate": "npx prisma generate", 
     "analyze": "clinic doctor --on-port 'autocannon -m POST localhost:8000/users/register' -- node dist/main.js"
   },
   "keywords": [],

@@ -1,3 +1,5 @@
+import { UsersRepository } from "./users/users.repisitory";
+
 export const Types = {
 	Application: Symbol.for('Application'),
 	LoggerService: Symbol.for('LoggerService'),
@@ -7,4 +9,5 @@ export const Types = {
 	ExeptionFilter: Symbol.for('ExeptionFilter'),
 	ConfigService: Symbol.for('ConfigService'),
 	PrismaService: Symbol.for('PrismaService'),
+	UsersRepository: Symbol.for('UsersRepository'),
 };

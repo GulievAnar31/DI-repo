@@ -19,10 +19,14 @@ export abstract class BaseController {
 	}
 
 	public send<T>(res: Response, code: number, message: T): Response<any, Record<string, any>> {
-		res.type('application/json');
-		return res.sendStatus(code).json(message);
+		if (!res.headersSent) {
+			res.type('application/json');
+			return res.status(code).json(message);
+		} else {
+			return res;
+		}
 	}
-
+	
 	public ok<T>(res: Response, message: T): void {
 		this.send<T>(res, 200, message);
 	}
