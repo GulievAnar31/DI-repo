@@ -26,6 +26,7 @@ export class UsersController extends BaseController implements IUserController {
 				method: 'post',
 				path: '/login',
 				func: this.loginUser,
+				middlewares: [new ValidateMiddleware(UserLoginDto)]
 			},
 			{ 
 				method: 'post',
@@ -37,8 +38,19 @@ export class UsersController extends BaseController implements IUserController {
 		this.bindRoutes(this.userRouter);
 	}
 
-	loginUser(req: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): void {
-		
+	async loginUser({ body }: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const result = await this.userService.validateUser(body);
+
+			if (!result) {
+				res.status(422).json({ error: 'Неверные учетные данные' });
+				return;
+			}
+
+			res.status(200).json({ message: 'Вход выполнен успешно' });
+		} catch(error){
+			next(error);
+		}
 	}
 
 	async registerUser({ body }: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
