@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { BaseController } from '../common/base.controller';
 import { IControllerRoute } from '../common/routes.interface';
-import { HTTPError } from '../errors/http-error.class';
-import { injectable, inject, id } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { Types } from '../types';
 import { ILogger } from '../logger/logger.interface';
 import 'reflect-metadata';
@@ -58,14 +57,12 @@ export class UsersController extends BaseController implements IUserController {
 			const result = await this.userService.createUser(body);
 	
 			if (!result) {
-				// this.logger.error('User already exists');
 				res.status(422).json({ error: 'Такой пользователь уже существует' });
 				return;
 			}
 	
 			this.ok(res, { email: result.email, id: result.id });
 		} catch (error) {
-			// Handle other errors
 			next(error);
 		}
 	}	
