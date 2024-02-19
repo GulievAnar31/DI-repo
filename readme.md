@@ -19,8 +19,8 @@ This is a boilerplate project for building RESTful APIs using Express.js and Typ
 
 ## Installation
 
-1. Clone this repository: `git clone https://github.com/anar/express.git`
-2. Navigate into the project directory: `cd express`
+1. Clone this repository: `git clone https://github.com/GulievAnar31/DI-repo`
+2. Navigate into the project directory: `cd di-repo`
 3. Install dependencies: `npm install`
 
 ## Usage
