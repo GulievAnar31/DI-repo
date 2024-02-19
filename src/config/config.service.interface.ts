@@ -1,3 +1,3 @@
 export interface IConfifService {
-    getKey: (key: string) => string; 
+    get: (key: string) => string; 
 }

@@ -10,86 +10,90 @@ import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserService } from './user.service';
 import { ValidateMiddleware } from '../common/validate.middleware';
-import { sign } from 'jsonwebtoken'; // подписывает токен
-import { ConfigService } from '../config/config.service';
+import { sign } from 'jsonwebtoken'; // подписывает токе
+import { IUserService } from './users.service.interface';
+import { IConfifService } from '../config/config.service.interface';
+import { HTTPError } from '../errors/http-error.class';
+import { AuthGuard } from '../common/auth.guard';
 
 @injectable()
-export class UsersController extends BaseController implements IUserController {
-	userRouter: IControllerRoute[];
-
+export class UserController extends BaseController implements IUserController {
 	constructor(
 		@inject(Types.LoggerService) private loggerService: ILogger,
-		@inject(Types.UserService) private userService: UserService,
-		@inject(Types.ConfigService) private configService: ConfigService
+		@inject(Types.UserService) private userService: IUserService,
+		@inject(Types.ConfigService) private configService: IConfifService,
 	) {
 		super(loggerService);
-		this.userRouter = [
+		this.bindRoutes([
 			{
-				method: 'post',
-				path: '/login',
-				func: this.loginUser,
-				middlewares: [new ValidateMiddleware(UserLoginDto)]
-			},
-			{
-				method: 'post',
 				path: '/register',
-				func: this.registerUser,
-				middlewares: [new ValidateMiddleware(UserRegisterDto)]
+				method: 'post',
+				func: this.register,
+				middlewares: [new ValidateMiddleware(UserRegisterDto)],
 			},
-		];
-		this.bindRoutes(this.userRouter);
+			{
+				path: '/login',
+				method: 'post',
+				func: this.login,
+				middlewares: [new ValidateMiddleware(UserLoginDto)],
+			},
+			{
+				path: '/info',
+				method: 'get',
+				func: this.info,
+				middlewares: [new AuthGuard()],
+			},
+		]);
 	}
 
-	async loginUser({ body }: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): Promise<void> {
-		try {
-			const result = await this.userService.validateUser(body);
-
-			if (!result) {
-				res.status(422).json({ error: 'Неверные учетные данные' });
-				return;
-			}
-
-			const jwt = await this.signJWT(body.email, this.configService.getKey('SECRET'))
-
-			res.status(200).json({ message: 'Вход выполнен успешно', jwt: jwt });
-		} catch (error) {
-			next(error);
+	async login(
+		req: Request<{}, {}, UserLoginDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		const result = await this.userService.validateUser(req.body);
+		if (!result) {
+			return next(new HTTPError(401, 'ошибка авторизации', 'login'));
 		}
+		const jwt = await this.signJWT(req.body.email, this.configService.get('SECRET'));
+		this.ok(res, { jwt });
 	}
 
-	async registerUser({ body }: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
-		try {
-			const result = await this.userService.createUser(body);
-
-			if (!result) {
-				res.status(422).json({ error: 'Такой пользователь уже существует' });
-				return;
-			}
-
-			this.ok(res, { email: result.email, id: result.id });
-		} catch (error) {
-			next(error);
+	async register(
+		{ body }: Request<{}, {}, UserRegisterDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		const result = await this.userService.createUser(body);
+		if (!result) {
+			return next(new HTTPError(422, 'Такой пользователь уже существует'));
 		}
+		this.ok(res, { email: result.email, id: result.id });
+	}
+
+	async info({ user }: any, res: Response, next: NextFunction): Promise<void> {
+		const userInfo = await this.userService.getUserInfo(user);
+		this.ok(res, { email: userInfo?.email, id: userInfo?.id });
 	}
 
 	private signJWT(email: string, secret: string): Promise<string> {
 		return new Promise<string>((resolve, reject) => {
-			sign({
-				email,
-				iat: Math.floor(Date.now() / 1000) // когда мы выпустили токен что бы предотвратить утечку токена
-			}, secret, {
-				// алгоритм создания токена
-				algorithm: 'HS256',
-
-			}, (err, token) => {
-				// обработка ошибки
-				if (err) {
-					reject(err);
-				}
-
-				resolve(token as string);
-			})
-			// nо из чего состоит подпись
-		})
+			sign(
+				{
+					email,
+					iat: Math.floor(Date.now() / 1000),
+				},
+				secret,
+				{
+					algorithm: 'HS256',
+				},
+				(err, token) => {
+					if (err) {
+						reject(err);
+					}
+					resolve(token as string);
+				},
+			);
+		});
 	}
 }

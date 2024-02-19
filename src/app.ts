@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import express, { Express } from 'express';
 import { Server } from 'node:http';
 import { LoggerService } from './logger/logger.service';
-import { UsersController } from './users/users.controller';
+import { UserController } from './users/users.controller';
 import { ExeptionFilter } from './errors/exception.filter';
 import { PostContoller } from './posts/posts.contoller';
 import { injectable, inject } from 'inversify';
@@ -10,6 +10,7 @@ import { Types } from './types';
 import { json } from 'body-parser';
 import { ConfigService } from './config/config.service';
 import { PrismaService } from './common/db/prisma.service';
+import { AuthMiddleware } from './common/auth.middleware';
 
 @injectable()
 class App {
@@ -20,7 +21,7 @@ class App {
 	constructor(
 		@inject(Types.LoggerService) private logger: LoggerService,
 		@inject(Types.ExeptionFilter) private exeptionFilter: ExeptionFilter,
-		@inject(Types.UsersController) private userController: UsersController,
+		@inject(Types.UsersController) private userController: UserController,
 		@inject(Types.PostController) private postController: PostContoller,
 		@inject(Types.ConfigService) private configService: ConfigService,
 		@inject(Types.PrismaService) private prismaService: PrismaService,
@@ -31,6 +32,9 @@ class App {
 
 	useMiddleware(): void {
 		this.app.use(json());
+		const authMiddleware = new AuthMiddleware(this.configService.get('SERVICE'));
+
+		this.app.use(authMiddleware.execute.bind(authMiddleware)); 
 	}
 
 	useRoutes(): void {

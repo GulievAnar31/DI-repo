@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 export interface IUserController {
-	loginUser(req: Request, res: Response, next: NextFunction): void;
-	registerUser(req: Request, res: Response, next: NextFunction): void;
+	login: (req: Request, res: Response, next: NextFunction) => void;
+	register: (req: Request, res: Response, next: NextFunction) => void;
+	info: (req: Request, res: Response, next: NextFunction) => void;
 }

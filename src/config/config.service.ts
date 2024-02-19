@@ -20,7 +20,7 @@ export class ConfigService implements IConfifService {
             this.config = result.parsed as DotenvParseOutput;
         }
     }
-    getKey(key: string): string {
+    get(key: string): string {
         return this.config[key];
     };
 }

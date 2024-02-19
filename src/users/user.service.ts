@@ -4,40 +4,37 @@ import { UserRegisterDto } from "./dto/user-register.dto";
 import { User } from "./user.entity";
 import { IUserService } from "./users.service.interface";
 import { Types } from "../types";
-import { ConfigService } from "../config/config.service";
-import { UsersRepository } from "./users.repisitory";
 import { UserModel } from "@prisma/client";
-import { compare } from "bcryptjs";
+import { IConfifService } from "../config/config.service.interface";
+import { IUserRepository } from "./user.repisitory.interface";
 
 @injectable()
 export class UserService implements IUserService {
-    constructor(
-        @inject(Types.ConfigService) private configService: ConfigService,
-        @inject(Types.UsersRepository) private usersRepository: UsersRepository
-    ){}
-    async createUser({ email, name, password }:  UserRegisterDto): Promise<UserModel | null>{
-        const newUser = new User(email, name)
-        const salt: string = this.configService.getKey("SALT")
-        console.log(salt);
+	constructor(
+		@inject(Types.ConfigService) private configService: IConfifService,
+		@inject(Types.UsersRepository) private usersRepository: IUserRepository,
+	) {}
+	async createUser({ email, name, password }: UserRegisterDto): Promise<UserModel | null> {
+		const newUser = new User(email, name);
+		const salt = this.configService.get('SALT');
 		await newUser.setPassword(password, Number(salt));
-        const existedUser = await this.usersRepository.find(newUser.email);
-  
-        if(existedUser){
-            return null;
-        }
+		const existedUser = await this.usersRepository.find(email);
+		if (existedUser) {
+			return null;
+		}
+		return this.usersRepository.create(newUser);
+	}
 
-        return this.usersRepository.create(newUser)
-    };
+	async validateUser({ email, password }: UserLoginDto): Promise<boolean> {
+		const existedUser = await this.usersRepository.find(email);
+		if (!existedUser) {
+			return false;
+		}
+		const newUser = new User(existedUser.email, existedUser.name, existedUser.password);
+		return newUser.comparePassword(password);
+	}
 
-    async validateUser({ email, password }: UserLoginDto): Promise<boolean>{
-        const user = await this.usersRepository.find(email);
-
-        if(!user){
-            return false;
-        }
-
-        const newUser = new User(user.email, user.name, user.password);
-
-        return newUser.comparePassword(password);
-    };
+	async getUserInfo(email: string): Promise<UserModel | null> {
+		return this.usersRepository.find(email);
+	}
 }
